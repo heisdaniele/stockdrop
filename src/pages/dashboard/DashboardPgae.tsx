@@ -112,6 +112,18 @@ export function AppPage() {
         functionName: "decimals",
       });
       const value = parseUnits(amount, decimals);
+      const balance = await publicClient.readContract({
+        address: stock.address,
+        abi: erc20Abi,
+        functionName: "balanceOf",
+        args: [address!],
+      });
+      if (balance < value) {
+        return setTx({
+          kind: "error",
+          message: `Insufficient ${stock.symbol} balance. You need ${amount} ${stock.symbol} in the connected wallet.`,
+        });
+      }
       setTx({
         kind: "pending",
         message: `Approve ${amount} ${stock.symbol} in your wallet.`,
@@ -146,7 +158,7 @@ export function AppPage() {
       setAmount("");
       setMemo("");
     } catch (error) {
-      const reason = error instanceof Error ? error.message.toLowerCase() : "";
+      const reason = getTransactionError(error);
       setTx({
         kind: "error",
         message: reason.includes("user rejected")
@@ -154,7 +166,7 @@ export function AppPage() {
           : reason.includes("estimate gas") ||
               reason.includes("useroperation reverted")
             ? "The connected wallet could not execute this transfer. Use the funded test wallet and check its test-stock balance."
-            : "Unable to create this StockDrop. Check your stock and Base Sepolia ETH balances, then try again.",
+            : `Unable to create this StockDrop: ${reason || "check your stock and Base Sepolia ETH balances, then try again."}`,
       });
     }
   }
@@ -423,6 +435,24 @@ export function AppPage() {
       </main>
     </div>
   );
+}
+
+function getTransactionError(error: unknown) {
+  if (!error || typeof error !== "object") return "";
+  const candidate = error as {
+    shortMessage?: string;
+    details?: string;
+    message?: string;
+    cause?: { shortMessage?: string; details?: string; message?: string };
+  };
+  return (
+    candidate.shortMessage ??
+    candidate.details ??
+    candidate.cause?.shortMessage ??
+    candidate.cause?.details ??
+    candidate.message ??
+    ""
+  ).toLowerCase();
 }
 
 function StockLogo({ symbol }: { symbol: string }) {
