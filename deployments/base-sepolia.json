@@ -1,0 +1,10 @@
+{
+  "network": "base-sepolia",
+  "chainId": 84532,
+  "vault": "0xD55e75dfe22C28Cb8454bFcDE2Db84d0e18eB561",
+  "mockStocks": {
+    "NVDA": "0x9F52e11E94925410fC182F23cbfd628A5a172365",
+    "TSLA": "0xB876DC3614dB6676D60e6Df2983FeC1A1971942A",
+    "AAPL": "0xF4ef19a9d1bB18229C6012Cb7e45B3a84582384f"
+  }
+}

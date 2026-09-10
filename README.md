@@ -1,78 +1,50 @@
-# React + TypeScript + Vite
+# StockDrop
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+StockDrop is a programmable distribution protocol for Coinbase Tokenized Stocks on Base. One vault contract powers time-locked personal gifts and immediately claimable business rewards.
 
-Currently, two official plugins are available:
+## What works
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Coinbase Smart Wallet and injected-wallet connection through Wagmi
+- Exact ERC-20 approval followed by a vault deposit
+- Recipient, asset, amount, unlock time, and memo stored onchain
+- Recipient-only claims after the unlock time
+- Duration-zero rewards through the same contract primitive
+- Connected-wallet inbox for discovering and claiming StockDrops
 
-## React Compiler
+## Local development
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
-
-Note: This will impact Vite dev & build performances.
-You can also try [the experimental native React Compiler support in plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md#rust-react-compiler) by using `compiler: true` in the plugin options instead of using the Babel plugin.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
+cp .env.example .env
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+The UI can run without contract addresses and will show a setup notice. To enable transactions, add a deployed vault address and the verified Base Sepolia token addresses to `.env`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Never invent or substitute tokenized-stock addresses. Use the addresses published by the hackathon or Coinbase for the selected network.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Smart contracts
 
+```bash
+npm run contracts:compile
+npm run contracts:test
 ```
+
+For a local demonstration, deploy `MockStock` and use its address as `VITE_NVDA_TOKEN_ADDRESS`. The mock is test-only and is not an official tokenized stock.
+
+The current Base Sepolia deployments are recorded in `deployments/base-sepolia.json`. The application uses these mock addresses by default and labels them as test assets.
+
+To deploy the vault to Base Sepolia, set `BASE_SEPOLIA_RPC_URL` and `DEPLOYER_PRIVATE_KEY` in your local environment, fund the deployer with Base Sepolia ETH, then run:
+
+```bash
+npm run contracts:deploy:base-sepolia
+```
+
+Copy the printed vault address into `VITE_STOCKDROP_VAULT_ADDRESS`, restart Vite, and verify the deployed contract before sharing the app.
+
+## Safety notes
+
+- The contract rejects transfer-fee tokens so recorded amounts remain fully collateralized.
+- Gifts are immutable after deposit and cannot be reclaimed by the sender.
+- Only the named recipient can claim, and each gift can be claimed once.
+- This hackathon contract has automated tests but has not received an independent security audit.
